@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LEK Technology — Employee Onboarding Tool
 
-## Getting Started
+A streamlined web app for clients to submit new employee setup requests to LEK Technology.
 
-First, run the development server:
+## Pages
+
+| Page | URL | Description |
+|------|-----|-------------|
+| Onboarding Form | `/` | Clients fill out new employee details |
+| Admin Dashboard | `/admin?key=lektech2024` | LEK staff view and manage all submissions |
+
+---
+
+## Setup
+
+### 1. Supabase (Database)
+
+1. Go to [supabase.com](https://supabase.com) and create a free account + project
+2. In your project, go to **SQL Editor → New Query**
+3. Paste and run the contents of `lib/supabase-schema.sql`
+4. Go to **Settings → API** and copy:
+   - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon` public key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `service_role` secret key → `SUPABASE_SERVICE_ROLE_KEY`
+
+### 2. Resend (Email Notifications)
+
+1. Go to [resend.com](https://resend.com) and create a free account
+2. Create an API key → `RESEND_API_KEY`
+3. Set `NOTIFICATION_EMAIL` to where you want submission alerts sent
+
+### 3. Environment Variables
+
+Edit `.env.local` and fill in your values:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+RESEND_API_KEY=re_...
+NEXT_PUBLIC_ADMIN_KEY=lektech2024
+NOTIFICATION_EMAIL=admin@lektechnology.com
+```
+
+> **Change `NEXT_PUBLIC_ADMIN_KEY`** to something only you know before deploying!
+
+---
+
+## Running Locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) for the form.
+Open [http://localhost:3000/admin?key=lektech2024](http://localhost:3000/admin?key=lektech2024) for the dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploying to Vercel (Free)
 
-## Learn More
+1. Push this project to a GitHub repo
+2. Go to [vercel.com](https://vercel.com) → Import your repo
+3. In Vercel's project settings, add all the environment variables from `.env.local`
+4. Deploy — done! You'll get a URL like `lek-onboarding.vercel.app`
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Changing the Admin Password
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Update `NEXT_PUBLIC_ADMIN_KEY` in `.env.local` (and in Vercel environment variables after deploying).
+The admin dashboard URL becomes `/admin?key=YOURNEWKEY`.
