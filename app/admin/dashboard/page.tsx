@@ -31,7 +31,6 @@ function AdminDashboard() {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [showArchived, setShowArchived] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
@@ -74,22 +73,6 @@ function AdminDashboard() {
       setOffboarding(prev => prev.filter(s => s.id !== id))
       setSelectedOffboard(null)
     }
-  }
-
-  const handleDelete = async (id: string, type: Tab) => {
-    await fetch('/api/delete-submission', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, type }),
-    })
-    if (type === 'onboarding') {
-      setOnboarding(prev => prev.filter(s => s.id !== id))
-      setSelectedOnboard(null)
-    } else {
-      setOffboarding(prev => prev.filter(s => s.id !== id))
-      setSelectedOffboard(null)
-    }
-    setConfirmDelete(null)
   }
 
   const handleLogout = async () => {
@@ -314,7 +297,7 @@ function AdminDashboard() {
                     </button>
                   ))}
                 </div>
-                {selectedItem.status === 'completed' && (
+                {selectedItem.status === 'completed' && !selectedItem.archived && (
                   <div className="mx-5 mb-3 bg-green-50 border border-green-200 rounded-lg px-3.5 py-2.5 flex items-center justify-between gap-3">
                     <p className="text-xs text-green-700 font-medium">Request complete — archive to clean up your dashboard.</p>
                     <button
@@ -335,38 +318,17 @@ function AdminDashboard() {
                 )}
                 <DetailRow label="Submitted" value={selectedItem.created_at ? new Date(selectedItem.created_at).toLocaleString() : ''} />
 
-                {/* Archive / Delete actions */}
-                <div className="pt-3 border-t border-gray-100 flex gap-2">
-                  <button
-                    onClick={() => handleArchive(selectedItem.id!, tab)}
-                    className="flex-1 text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 font-medium transition-colors"
-                  >
-                    Archive
-                  </button>
-                  {confirmDelete === selectedItem.id ? (
-                    <div className="flex-1 flex gap-1">
-                      <button
-                        onClick={() => handleDelete(selectedItem.id!, tab)}
-                        className="flex-1 text-xs px-3 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
-                      >
-                        Confirm
-                      </button>
-                      <button
-                        onClick={() => setConfirmDelete(null)}
-                        className="flex-1 text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 font-medium transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
+                {/* Archive action */}
+                {!selectedItem.archived && (
+                  <div className="pt-3 border-t border-gray-100">
                     <button
-                      onClick={() => setConfirmDelete(selectedItem.id!)}
-                      className="flex-1 text-xs px-3 py-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 font-medium transition-colors"
+                      onClick={() => handleArchive(selectedItem.id!, tab)}
+                      className="w-full text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 font-medium transition-colors"
                     >
-                      Delete
+                      Archive
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (

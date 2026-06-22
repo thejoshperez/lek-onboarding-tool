@@ -19,6 +19,7 @@ export type OffboardingSubmission = {
   equipment_to_return: string
   notes: string
   status?: string
+  archived?: boolean
 }
 
 export type OnboardingSubmission = {
@@ -39,6 +40,7 @@ export type OnboardingSubmission = {
   phone_number: string
   notes: string
   status?: string
+  archived?: boolean
 }
 
 export function getAnonClient() {
