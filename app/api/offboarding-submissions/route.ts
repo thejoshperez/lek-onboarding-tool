@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = getServiceClient()
     let query = supabase.from('employee_offboarding').select('*').order('created_at', { ascending: false })
-    if (!showArchived) query = query.eq('archived', false)
+    if (!showArchived) query = query.neq('archived', true)
     const { data, error } = await query
 
     if (error) {
