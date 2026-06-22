@@ -6,7 +6,20 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const raw = await request.json()
+
+    // Convert empty strings to null for optional fields
+    const body = {
+      ...raw,
+      job_title: raw.job_title || null,
+      department: raw.department || null,
+      manager_name: raw.manager_name || null,
+      manager_email: raw.manager_email || null,
+      reassign_license_to: raw.reassign_license_to || null,
+      forward_email_to: raw.forward_email_to || null,
+      equipment_to_return: raw.equipment_to_return || null,
+      notes: raw.notes || null,
+    }
 
     const supabase = getServiceClient()
     const { data, error } = await supabase
