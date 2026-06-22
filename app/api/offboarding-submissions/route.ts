@@ -8,17 +8,19 @@ async function isAuthenticated() {
   return session?.value === process.env.ADMIN_PASSWORD
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     if (!await isAuthenticated()) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { searchParams } = new URL(request.url)
+    const showArchived = searchParams.get('archived') === 'true'
+
     const supabase = getServiceClient()
-    const { data, error } = await supabase
-      .from('employee_offboarding')
-      .select('*')
-      .order('created_at', { ascending: false })
+    let query = supabase.from('employee_offboarding').select('*').order('created_at', { ascending: false })
+    if (!showArchived) query = query.eq('archived', false)
+    const { data, error } = await query
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

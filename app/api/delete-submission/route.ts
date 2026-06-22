@@ -8,27 +8,25 @@ async function isAuthenticated() {
   return session?.value === process.env.ADMIN_PASSWORD
 }
 
-export async function GET(request: NextRequest) {
+export async function DELETE(request: NextRequest) {
   try {
     if (!await isAuthenticated()) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url)
-    const showArchived = searchParams.get('archived') === 'true'
+    const { id, type } = await request.json()
+    const table = type === 'onboarding' ? 'employee_onboarding' : 'employee_offboarding'
 
     const supabase = getServiceClient()
-    let query = supabase.from('employee_onboarding').select('*').order('created_at', { ascending: false })
-    if (!showArchived) query = query.eq('archived', false)
-    const { data, error } = await query
+    const { error } = await supabase.from(table).delete().eq('id', id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ submissions: data })
+    return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('GET /api/submissions error:', err)
+    console.error('DELETE /api/delete-submission error:', err)
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Server error' }, { status: 500 })
   }
 }
@@ -39,13 +37,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id, status } = await request.json()
-    const supabase = getServiceClient()
+    const { id, type, archived } = await request.json()
+    const table = type === 'onboarding' ? 'employee_onboarding' : 'employee_offboarding'
 
-    const { error } = await supabase
-      .from('employee_onboarding')
-      .update({ status })
-      .eq('id', id)
+    const supabase = getServiceClient()
+    const { error } = await supabase.from(table).update({ archived }).eq('id', id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -53,7 +49,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('PATCH /api/submissions error:', err)
+    console.error('PATCH /api/delete-submission error:', err)
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Server error' }, { status: 500 })
   }
 }

@@ -30,13 +30,15 @@ function AdminDashboard() {
   const [selectedOffboard, setSelectedOffboard] = useState<OffboardingSubmission | null>(null)
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
+  const [showArchived, setShowArchived] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
       const [onboardRes, offboardRes] = await Promise.all([
-        fetch('/api/submissions'),
-        fetch('/api/offboarding-submissions'),
+        fetch(`/api/submissions?archived=${showArchived}`),
+        fetch(`/api/offboarding-submissions?archived=${showArchived}`),
       ])
 
       if (onboardRes.status === 401 || offboardRes.status === 401) {
@@ -57,7 +59,38 @@ function AdminDashboard() {
     }
   }, [router])
 
-  useEffect(() => { fetchAll() }, [fetchAll])
+  useEffect(() => { fetchAll() }, [fetchAll, showArchived])
+
+  const handleArchive = async (id: string, type: Tab) => {
+    await fetch('/api/delete-submission', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, type, archived: true }),
+    })
+    if (type === 'onboarding') {
+      setOnboarding(prev => prev.filter(s => s.id !== id))
+      setSelectedOnboard(null)
+    } else {
+      setOffboarding(prev => prev.filter(s => s.id !== id))
+      setSelectedOffboard(null)
+    }
+  }
+
+  const handleDelete = async (id: string, type: Tab) => {
+    await fetch('/api/delete-submission', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, type }),
+    })
+    if (type === 'onboarding') {
+      setOnboarding(prev => prev.filter(s => s.id !== id))
+      setSelectedOnboard(null)
+    } else {
+      setOffboarding(prev => prev.filter(s => s.id !== id))
+      setSelectedOffboard(null)
+    }
+    setConfirmDelete(null)
+  }
 
   const handleLogout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' })
@@ -133,6 +166,12 @@ function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowArchived(v => !v)}
+              className={`text-xs font-medium transition-colors ${showArchived ? 'text-[#8B2236]' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              {showArchived ? 'Hide Archived' : 'Show Archived'}
+            </button>
             <button onClick={fetchAll} className="text-xs text-[#8B2236] font-medium hover:underline">
               Refresh
             </button>
@@ -282,6 +321,39 @@ function AdminDashboard() {
                   <OffboardingDetail sub={selectedOffboard!} />
                 )}
                 <DetailRow label="Submitted" value={selectedItem.created_at ? new Date(selectedItem.created_at).toLocaleString() : ''} />
+
+                {/* Archive / Delete actions */}
+                <div className="pt-3 border-t border-gray-100 flex gap-2">
+                  <button
+                    onClick={() => handleArchive(selectedItem.id!, tab)}
+                    className="flex-1 text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 font-medium transition-colors"
+                  >
+                    Archive
+                  </button>
+                  {confirmDelete === selectedItem.id ? (
+                    <div className="flex-1 flex gap-1">
+                      <button
+                        onClick={() => handleDelete(selectedItem.id!, tab)}
+                        className="flex-1 text-xs px-3 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(null)}
+                        className="flex-1 text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 font-medium transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDelete(selectedItem.id!)}
+                      className="flex-1 text-xs px-3 py-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 font-medium transition-colors"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ) : (

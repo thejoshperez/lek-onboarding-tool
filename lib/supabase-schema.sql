@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS employee_onboarding (
   notes TEXT DEFAULT '',
 
   -- Status tracking
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed'))
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
+  archived BOOLEAN DEFAULT false
 );
 
 -- Enable Row Level Security
@@ -84,7 +85,8 @@ CREATE TABLE IF NOT EXISTS employee_offboarding (
   notes TEXT DEFAULT '',
 
   -- Status tracking
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed'))
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
+  archived BOOLEAN DEFAULT false
 );
 
 -- Enable Row Level Security
@@ -98,3 +100,13 @@ CREATE POLICY "Service role can view offboarding" ON employee_offboarding
 
 CREATE POLICY "Service role can update offboarding" ON employee_offboarding
   FOR UPDATE USING (auth.role() = 'service_role');
+
+CREATE POLICY "Service role can delete offboarding" ON employee_offboarding
+  FOR DELETE USING (auth.role() = 'service_role');
+
+-- ============================================================
+-- RUN THIS if you already created the tables and need to add
+-- the archived column to existing tables:
+-- ============================================================
+-- ALTER TABLE employee_onboarding ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT false;
+-- ALTER TABLE employee_offboarding ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT false;
