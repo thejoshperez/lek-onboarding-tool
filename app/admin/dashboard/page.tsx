@@ -57,9 +57,9 @@ function AdminDashboard() {
     } finally {
       setLoading(false)
     }
-  }, [router])
+  }, [router, showArchived])
 
-  useEffect(() => { fetchAll() }, [fetchAll, showArchived])
+  useEffect(() => { fetchAll() }, [fetchAll])
 
   const handleArchive = async (id: string, type: Tab) => {
     await fetch('/api/delete-submission', {
